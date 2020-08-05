@@ -17,15 +17,19 @@ async function save() {
     const jpgDims = jpgImage.scale(0.5);
     // const pngDims = pngImage.scale(0.5)
 
-    const page = pdfDoc.getPages()[0];
-
+    const longueurPage = $('#canvas1').height();
+    console.log("***");
+    console.log(longueurPage);
+    console.log(Math.floor(yPos/longueurPage));
+    let nombrePage = Math.floor(yPos/longueurPage);
+    const page = pdfDoc.getPages()[nombrePage];
     let w = page.getWidth();
     h = page.getHeight();
+
+    yPos = yPos - longueurPage * nombrePage;
     let xValue = xPos * (395.5/595) ;
     let yValue = h - jpgDims.height - yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
-    console.log('xValue');
-    console.log(xValue)
-    console.log('h');
+    console.log(xValue);
     console.log(h);
     page.drawImage(jpgImage, {
         // the point the most to the left and the most to the right is the point with the coordenates (0,0)
@@ -45,6 +49,7 @@ async function save() {
     const pdfBytes = await pdfDoc.save();
     download(pdfBytes, "pdf-lib_image_embedding_example.pdf", "application/pdf");
 }
+var longueurPage;
 var h ;
 function getPageTopLeft() {
     let offset = $('#canvas1').offset();
