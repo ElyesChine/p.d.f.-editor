@@ -1,54 +1,119 @@
 console.log('start js.js');
 const { PDFDocument } = PDFLib
 var imageContent;
-
+var originalHeight, newHeight;
+var countImages = -1;
 async function save() {
     // const jpgUrl = 'https://pdf-lib.js.org/assets/cat_riding_unicorn.jpg'
     // const pngUrl = 'https://pdf-lib.js.org/assets/minions_banana_alpha.png'
 
-    const jpgImageBytes = arrayBuffer;
+    // const jpgImageBytes = arrayBuffer;
     // const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer())
-    console.log(base64);
-    const pdfDoc = await PDFDocument.load(base64);
 
-    const jpgImage = await pdfDoc.embedJpg(jpgImageBytes);
+    const pdfDoc = await PDFDocument.load(base64);
+    for (const e of images) {
+        let imageBytes, image, imageDims,xValue,yValue;
+
+        if (e.yPos <= 0 ) {
+        const longueurPage = $('#canvas1').height();
+        
+        console.log(e);
+        let nombrePage = Math.floor(e.yPos/longueurPage);
+        console.log(e.yPos);
+        var page = pdfDoc.getPages()[nombrePage];
+        h = page.getHeight();
+
+        if (e.type === "image/jpeg"|| e.type === "image/jpg"){
+            imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,")+7));
+            image = await pdfDoc.embedJpg(imageBytes);
+            // const pngImage = await pdfDoc.embedPng(pngImageBytes);
+
+            imageDims = image.scale(0.5);
+            // const pngDims = pngImage.scale(0.5)
+
+            const longueurPage = $('#canvas1').height();
+
+            e.yPos = e.yPos - longueurPage * nombrePage;
+            xValue = e.xPos * (395.5/595) ;
+            yValue = h - imageDims.height*462.5/350 - e.yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
+            let id = "signature0"
+            originalHeight = document.getElementById(id).style.height;
+            newHeight = imageDims.height;
+        }
+        if( e.type === "image/png"){
+            imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,")+7));            image = await pdfDoc.embedPng(imageBytes);
+
+            imageDims = image.scale(0.5);
+            // const pngDims = pngImage.scale(0.5)
+
+            const longueurPage = $('#canvas1').height();
+
+            e.yPos = e.yPos - longueurPage * nombrePage;
+            xValue = e.xPos * (395.5/595) ;
+            yValue = h - imageDims.height*462.5/350 - e.yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
+        }
+
+        page.drawImage(image,{
+            x: xValue,
+            y: yValue,
+            width: imageDims.width*4/3,
+            height: imageDims.height*462.5/350
+        });}
+    }
+
+
+
+
+
+
     // const pngImage = await pdfDoc.embedPng(pngImageBytes);
 
-    const jpgDims = jpgImage.scale(0.5);
     // const pngDims = pngImage.scale(0.5)
 
-    const longueurPage = $('#canvas1').height();
-    console.log("***");
-    console.log(longueurPage);
-    console.log(Math.floor(yPos/longueurPage));
-    let nombrePage = Math.floor(yPos/longueurPage);
-    const page = pdfDoc.getPages()[nombrePage];
-    let w = page.getWidth();
-    h = page.getHeight();
 
-    yPos = yPos - longueurPage * nombrePage;
-    let xValue = xPos * (395.5/595) ;
-    let yValue = h - jpgDims.height - yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
-    console.log(xValue);
-    console.log(h);
-    page.drawImage(jpgImage, {
-        // the point the most to the left and the most to the right is the point with the coordenates (0,0)
-        x: xValue,
-        y: yValue ,
-        width: jpgDims.width,
-        height: jpgDims.height,
-    });
-    /* page.drawImage(pngImage, {
-        x: page.getWidth() / 2 - pngDims.width / 2 + 75,
-        y: page.getHeight() / 2 - pngDims.height + 250,
-        width: pngDims.width,
-        height: pngDims.height,
-    })
-     */
 
-    const pdfBytes = await pdfDoc.save();
+
+
+const pdfBytes = await pdfDoc.save();
     download(pdfBytes, "pdf-lib_image_embedding_example.pdf", "application/pdf");
 }
+var keys = Object.keys(localStorage), i = keys.length;
+var images = [];
+
+while ( i-- ) {
+    let image = JSON.parse(localStorage.getItem(keys[i]));
+    image.id = keys[i];
+    images.push( JSON.parse(localStorage.getItem(keys[i]))) ;
+    console.log(countImages++);
+    img = document.createElement("img");
+    img.id = 'signature'+countImages;
+    console.log("**");
+    const reference = countImages;
+    console.log(image.imageContent);
+    img.src = image.imageContent;
+    $(img).draggable({
+        start: function() {
+
+        },
+        drag: function(e) {
+            console.log('start drag');
+            console.log(reference);
+            offset = $(this).offset();
+            xPos = offset.left - leftSpace.left;
+            yPos = offset.top - getPosition(document.getElementById("canvas1")).y
+            /* leftSpace.top - 350*/   ;
+            images[reference].xPos = xPos;
+            console.log(xPos);
+            images[reference].yPos = yPos;
+            console.log(yPos);
+            console.log('end drag')
+        },
+        stop: function() {
+        }
+    });
+    document.getElementById("bibliotheque").appendChild(img);
+}
+
 var longueurPage;
 var h ;
 function getPageTopLeft() {
@@ -64,7 +129,6 @@ function render( pageNumber){
         console.log('Page loaded');
         var scale = 1.5;
         var viewport = page.getViewport({scale: scale});
-
         // Prepare canvas using PDF page dimensions
         var canvas = document.createElement("canvas");
         canvas.setAttribute("id", "canvas"+pageNumber);
@@ -93,8 +157,8 @@ function render( pageNumber){
         });
     });
 }
-function _base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64);
+function _base64ToArrayBuffer(base64input) {
+    var binary_string = window.atob(new String(base64input).replace(/\s/g, ''));
     var len = binary_string.length;
     var bytes = new Uint8Array(len);
     for (var i = 0; i < len; i++) {
@@ -105,9 +169,7 @@ function _base64ToArrayBuffer(base64) {
 var arrayBuffer ;
 var xPos;
 var yPos;
-var pageHeight;
-var height; // hauteur de l'image
-var countImages = 0;
+
 var img;
 function getPosition(element) {
     var xPosition = 0;
@@ -119,40 +181,52 @@ function getPosition(element) {
 
     return { x: xPosition, y: yPosition };
 }
+var type , imageBase64;
 function readURL(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
         img = document.createElement("img");
         reader.onload = function (e) {
             imageContent = e.target.result;
+            console.log(imageContent);
             countImages++;
+            const reference = countImages;
             // doubt
             img.id = 'signature'+countImages;
             img.src = imageContent;
             document.getElementById("bibliotheque").appendChild(img);
+            type = document.getElementById('file').files[0].type;
             // 23  caractères comme 'entete' du fichier encodé
-            arrayBuffer = _base64ToArrayBuffer(this.result.substring(23));
+            imageBase64 = this.result;
+            base64String = this.result.substring(this.result.search("base64,")+7);
+            arrayBuffer = _base64ToArrayBuffer(this.result.substring(this.result.search("base64,")+7));
+            //imageContent = data:(type);base64,(encoded image)
+            let image = {type: type, imageContent: imageContent };
+            images.push(image);
+            localStorage.setItem(new String(+ new Date()),JSON.stringify(image));
+            $(img).draggable({
+                start: function() {
+
+                },
+                drag: function(e) {
+                    console.log('start drag');
+                    console.log(reference);
+                    offset = $(this).offset();
+                    xPos = offset.left - leftSpace.left;
+                    yPos = offset.top - getPosition(document.getElementById("canvas1")).y
+                    /* leftSpace.top - 350*/   ;
+                    images[reference].xPos = xPos;
+                    console.log(xPos);
+                    images[reference].yPos = yPos;
+                    console.log(yPos);
+                    console.log('end drag')
+                },
+                stop: function() {
+                }
+            });
         };
         reader.readAsDataURL(input.files[0]);
 
-        $(img).draggable({
-            start: function() {
-
-            },
-            drag: function(e) {
-                console.log('start drag');
-                offset = $(this).offset();
-                xPos = offset.left - leftSpace.left;
-                yPos = offset.top - getPosition(document.getElementById("canvas1")).y
-                /* leftSpace.top - 350*/   ;
-                console.log(xPos);
-                console.log(yPos);
-                console.log('end drag')
-            },
-            stop: function() {
-
-            }
-        });
         console.log('done upload');
     }
 }

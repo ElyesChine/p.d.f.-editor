@@ -2,3 +2,7 @@ canvas {
     border: 1px solid black;
     direction: ltr;
 }
+#bibliotheque{
+    background-color: bisque;
+    height: 350px;
+}
