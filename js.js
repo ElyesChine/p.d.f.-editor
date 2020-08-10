@@ -3,6 +3,7 @@ const { PDFDocument } = PDFLib
 var imageContent;
 var originalHeight, newHeight;
 var countImages = -1;
+//télécharger le nouveau fichier en itérant sur l'ensmeble des images tout en regardant les changements de leurs posisitions pour savoir s'il faut les ajouter au fichier final
 async function save() {
     // const jpgUrl = 'https://pdf-lib.js.org/assets/cat_riding_unicorn.jpg'
     // const pngUrl = 'https://pdf-lib.js.org/assets/minions_banana_alpha.png'
@@ -36,9 +37,9 @@ async function save() {
             e.yPos = e.yPos - longueurPage * nombrePage;
             xValue = e.xPos * (395.5/595) ;
             yValue = h - imageDims.height*462.5/350 - e.yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
-            let id = "signature0"
+            /*let id = "signature0"
             originalHeight = document.getElementById(id).style.height;
-            newHeight = imageDims.height;
+            newHeight = imageDims.height;*/
         }
         if( e.type === "image/png"){
             imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,")+7));            image = await pdfDoc.embedPng(imageBytes);
@@ -61,22 +62,10 @@ async function save() {
         });}
     }
 
-
-
-
-
-
-    // const pngImage = await pdfDoc.embedPng(pngImageBytes);
-
-    // const pngDims = pngImage.scale(0.5)
-
-
-
-
-
-const pdfBytes = await pdfDoc.save();
-    download(pdfBytes, "pdf-lib_image_embedding_example.pdf", "application/pdf");
+    const pdfBytes = await pdfDoc.save();
+    download(pdfBytes, "pdf-lib_image_embedding.pdf", "application/pdf");
 }
+//récupérer les images persistées au stockage local du navigateur
 var keys = Object.keys(localStorage), i = keys.length;
 var images = [];
 
@@ -91,6 +80,20 @@ while ( i-- ) {
     const reference = countImages;
     console.log(image.imageContent);
     img.src = image.imageContent;
+    input = document.createElement("input");
+    input.type = "submit";
+    input.value ="delete";
+    input.id = keys[i];
+    const id=keys[i];
+    input.onclick =() =>{
+        let element = document.getElementById('signature'+reference);
+        element.parentNode.removeChild(element);
+        element = document.getElementById(id);
+        element.parentNode.removeChild(element);
+        localStorage.removeItem(id);
+    };
+    input.style.marginRight="15px";
+    input.className="btn btn-danger";
     $(img).draggable({
         start: function() {
 
@@ -111,10 +114,11 @@ while ( i-- ) {
         stop: function() {
         }
     });
+
     document.getElementById("bibliotheque").appendChild(img);
+    document.getElementById("bibliotheque").appendChild(input);
 }
 
-var longueurPage;
 var h ;
 function getPageTopLeft() {
     let offset = $('#canvas1').offset();
@@ -124,6 +128,7 @@ function getPageTopLeft() {
     };
 }
 var leftSpace = {left: 0, top: 0};
+//afficher la page numéro "pageNumber"
 function render( pageNumber){
     pdf.getPage(pageNumber).then(function(page) {
         console.log('Page loaded');
@@ -174,11 +179,8 @@ var img;
 function getPosition(element) {
     var xPosition = 0;
     var yPosition = 0;
-
         xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
         yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
-        element = element.offsetParent;
-
     return { x: xPosition, y: yPosition };
 }
 var type , imageBase64;
@@ -191,19 +193,34 @@ function readURL(input) {
             console.log(imageContent);
             countImages++;
             const reference = countImages;
-            // doubt
             img.id = 'signature'+countImages;
             img.src = imageContent;
             document.getElementById("bibliotheque").appendChild(img);
             type = document.getElementById('file').files[0].type;
-            // 23  caractères comme 'entete' du fichier encodé
             imageBase64 = this.result;
             base64String = this.result.substring(this.result.search("base64,")+7);
             arrayBuffer = _base64ToArrayBuffer(this.result.substring(this.result.search("base64,")+7));
             //imageContent = data:(type);base64,(encoded image)
             let image = {type: type, imageContent: imageContent };
             images.push(image);
-            localStorage.setItem(new String(+ new Date()),JSON.stringify(image));
+            key = new String(+ new Date())
+            localStorage.setItem(key,JSON.stringify(image));
+            console.log("hhh");
+            input = document.createElement("input");
+            input.type = "submit";
+            input.value ="delete";
+            input.id = key;
+            const id=key;
+            input.onclick =() =>{
+                let element = document.getElementById('signature'+reference);
+                element.parentNode.removeChild(element);
+                element = document.getElementById(id);
+                element.parentNode.removeChild(element);
+                localStorage.removeItem(id);
+            };
+            input.style.marginRight="15px";
+            input.className="btn btn-danger";
+            document.getElementById("bibliotheque").appendChild(input);
             $(img).draggable({
                 start: function() {
 
@@ -269,23 +286,7 @@ document.getElementById('fileInput').onchange = function () {
                 console.log(pdf.numPages);
                 numberOfPages = pdf.numPages;
                 render(1);
-                    /*
-                    var canvas = document.getElementById('the-canvas');
-                    var context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    // Render PDF page into canvas context
-                    var renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-                    var renderTask = page.render(renderContext);
-                    renderTask.promise.then(function () {
-                        console.log('Page rendered');
-                    });
-                    */
-                // });
+                    /**/
             }, function (reason) {
                 // PDF loading error
                 console.error(reason);
