@@ -1,65 +1,67 @@
 console.log('start js.js');
 const { PDFDocument } = PDFLib
 var imageContent;
-var originalHeight, newHeight;
 var countImages = -1;
+
 //télécharger le nouveau fichier en itérant sur l'ensmeble des images tout en regardant les changements de leurs posisitions pour savoir s'il faut les ajouter au fichier final
 async function save() {
-    // const jpgUrl = 'https://pdf-lib.js.org/assets/cat_riding_unicorn.jpg'
-    // const pngUrl = 'https://pdf-lib.js.org/assets/minions_banana_alpha.png'
-
-    // const jpgImageBytes = arrayBuffer;
-    // const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer())
-
+    // const jpgUrl;
+    //
     const pdfDoc = await PDFDocument.load(base64);
+    console.log(pdfDoc.getPages());
+    let w;
     for (const e of images) {
-        let imageBytes, image, imageDims,xValue,yValue;
-        console.log("e.yPos"+e.yPos);
-        if (e.yPos > 0 ) {
-        const longueurPage = $('#canvas1').height();
-        
-        console.log(e);
-        let nombrePage = Math.floor(e.yPos/longueurPage);
-        console.log(e.yPos);
-        var page = pdfDoc.getPages()[nombrePage];
-        h = page.getHeight();
+        let imageBytes, image, imageDims, xValue, yValue;
 
-        if (e.type === "image/jpeg"|| e.type === "image/jpg"){
-            imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,")+7));
-            image = await pdfDoc.embedJpg(imageBytes);
-            // const pngImage = await pdfDoc.embedPng(pngImageBytes);
-
-            imageDims = image.scale(0.5);
-            // const pngDims = pngImage.scale(0.5)
-
+        if (e.yPos > 0) {
             const longueurPage = $('#canvas1').height();
 
-            e.yPos = e.yPos - longueurPage * nombrePage;
-            xValue = e.xPos * (395.5/595) ;
-            yValue = h - imageDims.height*462.5/350 - e.yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
-            /*let id = "signature0"
-            originalHeight = document.getElementById(id).style.height;
-            newHeight = imageDims.height;*/
+            console.log(e);
+            let nombrePage = Math.floor(e.yPos / longueurPage);
+            console.log(e.yPos);
+            var page = pdfDoc.getPages()[nombrePage];
+            h = page.getHeight();
+            imageDims = {height: 0, width: 0};
+            if (e.type === "image/jpeg" || e.type === "image/jpg") {
+                imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,") + 7));
+                image = await pdfDoc.embedJpg(imageBytes);
+
+                console.log(imageDims.height);
+                console.log(imageDims.width);
+                imageDims.height = parseInt(document.getElementById('signature' + e.reference).style.height.substring(0,3)) * (1 / 2)
+                imageDims.width = parseInt(document.getElementById('signature' + e.reference).style.width.substring(0,3)) * (1 / 2)
+
+                const longueurPage = $('#canvas1').height();
+
+                e.yPos = e.yPos - longueurPage * nombrePage;
+                xValue = e.xPos * (395.5 / 595);
+                yValue = h - imageDims.height * 462.5 / 350 - e.yPos * (397.5 / 595);
+            }
+            if (e.type === "image/png") {
+                imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,") + 7));
+                image = await pdfDoc.embedPng(imageBytes);
+                /*imageDims = image.scale(0.5);*/
+                imageDims.height = parseInt(document.getElementById('signature' + e.reference).style.height.substring(0,3)) * (1 / 2)
+                imageDims.width = parseInt(document.getElementById('signature' + e.reference).style.width.substring(0,3)) * (1 / 2)
+
+                const longueurPage = $('#canvas1').height();
+
+                e.yPos = e.yPos - longueurPage * nombrePage;
+                xValue = e.xPos * (395.5 / 595);
+                yValue = h - imageDims.height * 462.5 / 350 - e.yPos * (397.5 / 595);
+            }
+            console.log(parseInt(document.getElementById('signature' + e.reference).style.height.substring(0,3)) * (1 / 2));
+            imageDims.height = parseInt(document.getElementById('signature' + e.reference).style.height.substring(0,3)) * (1 / 2)
+            imageDims.width = parseInt(document.getElementById('signature' + e.reference).style.width.substring(0,3)) * (1 / 2)
+            console.log(xValue);
+
+            page.drawImage(image, {
+                x: xValue,
+                y: yValue,
+                width: imageDims.width * 4 / 3,
+                height: imageDims.height * 462.5 / 350
+            });
         }
-        if( e.type === "image/png"){
-            imageBytes = _base64ToArrayBuffer(e.imageContent.substring(e.imageContent.search("base64,")+7));            image = await pdfDoc.embedPng(imageBytes);
-
-            imageDims = image.scale(0.5);
-            // const pngDims = pngImage.scale(0.5)
-
-            const longueurPage = $('#canvas1').height();
-
-            e.yPos = e.yPos - longueurPage * nombrePage;
-            xValue = e.xPos * (395.5/595) ;
-            yValue = h - imageDims.height*462.5/350 - e.yPos * (397.5/595) /*841.89 - 450/4 - yPos * (840/1261.7499694824219)*/  /* h - yPos * (yPos/h) - jpgDims.height */;
-        }
-
-        page.drawImage(image,{
-            x: xValue,
-            y: yValue,
-            width: imageDims.width*4/3,
-            height: imageDims.height*462.5/350
-        });}
     }
 
     const pdfBytes = await pdfDoc.save();
@@ -75,11 +77,15 @@ while ( i-- ) {
     images.push( JSON.parse(localStorage.getItem(keys[i]))) ;
     console.log(countImages++);
     img = document.createElement("img");
+    let e = document.createElement("span");
     img.id = 'signature'+countImages;
     console.log("**");
     const reference = countImages;
     console.log(image.imageContent);
     img.src = image.imageContent;
+    $(function() {
+        $(document.getElementById('signature'+reference)).resizable();
+    });
     input = document.createElement("input");
     input.type = "submit";
     input.value ="delete";
@@ -92,9 +98,14 @@ while ( i-- ) {
         element.parentNode.removeChild(element);
         localStorage.removeItem(id);
     };
-    input.style.marginRight="15px";
+    console.log(img.naturalHeight);
+    input.style.marginTop=new String(img.naturalHeight/2);
+    input.style.marginLeft="15px";
+    input.style.marginRight="100px";
     input.className="btn btn-danger";
-    $(img).draggable({
+    input.style.position="absolute";
+    images[reference].reference=reference;
+    $(e).draggable({
         start: function() {
 
         },
@@ -109,13 +120,16 @@ while ( i-- ) {
             console.log(xPos);
             images[reference].yPos = yPos;
             console.log(yPos);
+            images[reference].height=document.getElementById("signature"+reference).style.height;
+            images[reference].width=document.getElementById("signature"+reference).style.width;
             console.log('end drag')
         },
         stop: function() {
         }
     });
 
-    document.getElementById("bibliotheque").appendChild(img);
+    e.appendChild(img);
+    document.getElementById("bibliotheque").appendChild(e);
     document.getElementById("bibliotheque").appendChild(input);
 }
 
@@ -179,8 +193,8 @@ var img;
 function getPosition(element) {
     var xPosition = 0;
     var yPosition = 0;
-        xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
-        yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+    xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+    yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
     return { x: xPosition, y: yPosition };
 }
 var type , imageBase64;
@@ -286,7 +300,7 @@ document.getElementById('fileInput').onchange = function () {
                 console.log(pdf.numPages);
                 numberOfPages = pdf.numPages;
                 render(1);
-                    /**/
+                /**/
             }, function (reason) {
                 // PDF loading error
                 console.error(reason);
