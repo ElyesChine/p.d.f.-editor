@@ -6,7 +6,3 @@ canvas {
     background-color: bisque;
     height: 350px;
 }
-span {
-    position: sticky;
-    display: inline-block;margin-left: 100px ;
-}
