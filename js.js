@@ -107,6 +107,7 @@ while (i--) {
             //elements[i].parentNode.removeChild(elements[i]);
         }element = document.getElementById(id);
         element.parentNode.removeChild(element);element.textContent="";
+        window.location.reload();
     };
     /*console.log(img.naturalHeight);
     *//*input.style.marginTop=new String(img.naturalHeight/2);*//**/
