@@ -107,7 +107,10 @@ while (i--) {
             //elements[i].parentNode.removeChild(elements[i]);
         }element = document.getElementById(id);
         element.parentNode.removeChild(element);element.textContent="";
-        window.location.reload();
+        setTimeout(function (){
+                window.location.reload();
+            }, 400
+        );
     };
     /*console.log(img.naturalHeight);
     *//*input.style.marginTop=new String(img.naturalHeight/2);*//**/
@@ -409,9 +412,12 @@ function readURL(input) {
                 "left": s
             }).appendTo(document.getElementById("bibliotheque"));
             s = s + 95;
+            setTimeout(function (){
 
-
-
+                    window.location = window.location + '#loaded';
+                    window.location.reload();
+                    }, 400
+            );
         };
         reader.readAsDataURL(input.files[0]);
 
