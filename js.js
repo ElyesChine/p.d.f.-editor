@@ -109,7 +109,7 @@ while (i--) {
         element.parentNode.removeChild(element);element.textContent="";
         setTimeout(function (){
                 window.location.reload();
-            }, 400
+            }, 500
         );
     };
     /*console.log(img.naturalHeight);
@@ -166,6 +166,8 @@ while (i--) {
             /*"position" : "absolute",*/
             /*"left"     : $("#"+"signature"+reference).position().left,
             "top"      : $("#"+"signature"+reference).position().top*/
+            width: "170px",
+            height: "170px"
         }).appendTo(e2);
         $(function () {
             $(img2).resizable();
@@ -193,7 +195,7 @@ while (i--) {
             stop: function () {
             }
         });
-        input.style.marginTop=new String(img2.naturalHeight/2);
+        input.style.marginTop=new String((170/2)+"px");
         w=document.getElementById("signature" + reference2);
         console.log(w);
     }
@@ -373,6 +375,8 @@ function readURL(input) {
                     /*"position" : "absolute",*/
                     /*"left"     : $("#"+"signature"+reference).position().left,
                     "top"      : $("#"+"signature"+reference).position().top*/
+                    width: "170px",
+                    height: "170px"
                 }).appendTo(e2);
                 $(function () {
                     $(img2).resizable();
@@ -400,7 +404,7 @@ function readURL(input) {
                     stop: function () {
                     }
                 });
-                input.style.marginTop = new String(img2.naturalHeight / 2);
+                input.style.marginTop = new String(85+"px");
                 w = document.getElementById("signature" + reference2);
             }
             console.log(w);
@@ -416,7 +420,7 @@ function readURL(input) {
 
                     window.location = window.location + '#loaded';
                     window.location.reload();
-                    }, 400
+                    }, 800
             );
         };
         reader.readAsDataURL(input.files[0]);
